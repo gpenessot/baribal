@@ -40,3 +40,4 @@ ENV/
 
 # Ruff
 .ruff_cache/
+init-script.sh
