@@ -1,9 +1,9 @@
 """Core functionality for DataFrame inspection."""
-from typing import Optional, Union, Any, Tuple
+from typing import Any, Optional, Union, tuple
 
+import numpy as np
 import pandas as pd
 import polars as pl
-import numpy as np
 from scipy import stats
 
 
@@ -41,7 +41,9 @@ def _get_sample_values(
 
 def _format_type(type_str: str) -> str:
     """Format type string to be consistent and readable.
-    All types are normalized to 3 characters for alignment."""
+
+    All types are normalized to 3 characters for alignment.
+    """
     # Normalize type string format
     type_str = str(type_str).lower()
     if 'object' in type_str:
@@ -86,39 +88,39 @@ def _calculate_statistics(
         table = contingency_table.drop('All')
     else:
         table = contingency_table
-        
+
     if 'All' in table.columns:
         table = table.drop('All', axis=1)
-    
+
     # Vérifier si la table est valide pour le calcul
-    if (table.empty or 
-        table.sum().sum() == 0 or 
-        table.shape[0] < 2 or 
+    if (table.empty or
+        table.sum().sum() == 0 or
+        table.shape[0] < 2 or
         table.shape[1] < 2):
         return {
             'chi2': 0.0,
             'p_value': 1.0,
             'cramer_v': 0.0
         }
-    
+
     try:
         # Retirer les lignes/colonnes avec que des zéros
         mask_rows = table.sum(axis=1) > 0
         mask_cols = table.sum(axis=0) > 0
         table = table.loc[mask_rows, mask_cols]
-        
+
         if table.shape[0] < 2 or table.shape[1] < 2:
             return {
                 'chi2': 0.0,
                 'p_value': 1.0,
                 'cramer_v': 0.0
             }
-        
+
         # Calculer chi2 et V de Cramer
         chi2, p_value, dof, expected = stats.chi2_contingency(table)
         n = table.sum().sum()
         min_dim = min(table.shape) - 1
-        
+
         # Gestion explicite des cas limites
         if chi2 < 0 or n <= 0 or min_dim <= 0:
             cramer_v = 0.0
@@ -129,13 +131,13 @@ def _calculate_statistics(
                     cramer_v = 0.0
             except (ValueError, ZeroDivisionError):
                 cramer_v = 0.0
-        
+
         return {
             'chi2': float(chi2) if not np.isnan(chi2) else 0.0,
             'p_value': float(p_value) if not np.isnan(p_value) else 1.0,
             'cramer_v': float(cramer_v) if not np.isnan(cramer_v) else 0.0
         }
-        
+
     except Exception as e:
         print(f"Error in _calculate_statistics: {str(e)}")
         return {
@@ -176,11 +178,11 @@ def glimpse(
     def format_value(val) -> str:
         if val is None or (isinstance(val, float) and pd.isna(val)):
             return "NA"
-        
+
         val_str = str(val)
         if isinstance(val, str):
             val_str = f'"{val}"'
-        
+
         if len(val_str) > max_value_width:
             return val_str[:max_value_width-3] + "..."
         return val_str
@@ -189,7 +191,7 @@ def glimpse(
     for col in _get_columns(df):
         # Get column type
         col_type = _format_type(_get_dtype(df, col))
-        
+
         # Get sample values
         sample_vals = _get_sample_values(df, col, max_values)
         formatted_vals = [format_value(val) for val in sample_vals]
@@ -197,14 +199,14 @@ def glimpse(
 
         # Format column name with right padding
         col_name = str(col).ljust(max_name_length)
-        
+
         # Construct the column line with aligned type (using <> instead of ())
         col_line = f"$ {col_name} <{col_type}> {values_str}"
-        
+
         # Truncate if too long
         if len(col_line) > width:
             col_line = col_line[:width-3] + "..."
-        
+
         print(col_line)
 
 
@@ -214,31 +216,33 @@ def tabyl(
     show_na: bool = True,
     show_pct: bool = True,
     margin: bool = True,
-) -> Tuple[pd.DataFrame, Optional[dict]]:
+) -> tuple[pd.DataFrame, Optional[dict]]:
     """Create enhanced cross-tabulations with integrated statistics."""
     if not isinstance(df, (pd.DataFrame, pl.DataFrame)):
         raise TypeError("Input must be either a pandas DataFrame or a polars DataFrame")
-    
+
     # Convert to pandas if needed
     if isinstance(df, pl.DataFrame):
         try:
             df = df.to_pandas()
-        except ModuleNotFoundError:
-            raise ImportError("pyarrow is required for converting polars to pandas")
-    
+        except ModuleNotFoundError as err:
+            raise ImportError("pyarrow is required for converting polars to pandas") \
+                from err
+
+
     if not vars:
         raise ValueError("At least one variable must be specified")
-    
+
     # Validate all variables exist in DataFrame
     missing_vars = [var for var in vars if var not in df.columns]
     if missing_vars:
         raise ValueError(f"Variables not found in DataFrame: {missing_vars}")
-    
+
     # Handle NA values
     df_copy = df.copy()
     if not show_na:
         df_copy = df_copy.dropna(subset=list(vars))
-    
+
     # Create cross-tabulation
     if len(vars) == 1:
         # Single variable frequency table
@@ -246,42 +250,42 @@ def tabyl(
         if show_pct:
             result['percentage'] = result / len(df_copy) * 100
         stats_dict = None
-        
+
     elif len(vars) == 2:
         # Two-way cross-tabulation
         result = pd.crosstab(
-            df_copy[vars[0]], 
+            df_copy[vars[0]],
             df_copy[vars[1]],
             margins=margin,
             dropna=not show_na
         )
-        
+
         if show_pct:
             pct_row = _calculate_percentages(result, 'index')
             pct_col = _calculate_percentages(result, 'columns')
             pct_total = _calculate_percentages(result)
-            
+
             result = pd.concat([
                 result,
                 pct_row.add_suffix('_pct_row'),
                 pct_col.add_suffix('_pct_col'),
                 pct_total.add_suffix('_pct_total')
             ], axis=1)
-        
+
         # Calculate statistics (excluding margins)
         if result.size > 0:  # Check if table is not empty
             if margin:
                 stats_table = result.iloc[:-1, :-1]
             else:
                 stats_table = result
-            
+
             try:
                 stats_dict = _calculate_statistics(stats_table)
             except ValueError:
                 stats_dict = None
         else:
             stats_dict = None
-        
+
     else:
         # Multi-way cross-tabulation
         result = pd.crosstab(
@@ -290,13 +294,13 @@ def tabyl(
             margins=margin,
             dropna=not show_na
         )
-        
+
         if show_pct:
             result = pd.concat([
                 result,
                 _calculate_percentages(result, 'index').add_suffix('_pct_row')
             ], axis=1)
-        
+
         stats_dict = None
-    
+
     return result, stats_dict
