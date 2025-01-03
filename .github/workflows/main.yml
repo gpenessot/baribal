@@ -1,0 +1,59 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches: 
+      - main
+      - dev
+  pull_request:
+    branches: 
+      - main
+      - dev
+  workflow_dispatch:  # Add manual trigger
+    inputs:
+      python-version:
+        description: 'Python version to test'
+        required: false
+        default: '3.11'
+        type: choice
+        options:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: 
+          - ${{ github.event.inputs.python-version || '3.11' }}
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+    
+    - name: Install dependencies
+      run: |
+        uv venv
+        . .venv/bin/activate
+        uv pip install -e .[dev]
+    
+    - name: Run linters
+      run: |
+        . .venv/bin/activate
+        ruff check .
+    
+    - name: Run tests
+      run: |
+        . .venv/bin/activate
+        pytest
