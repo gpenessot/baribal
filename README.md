@@ -1,10 +1,10 @@
 # baribal 🐻
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/baribal/ci.yml?branch=main)](https://github.com/gpenessot/baribal/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/gpenessot/baribal/main.yml?branch=main)](https://github.com/gpenessot/baribal/actions)
 [![PyPI version](https://img.shields.io/pypi/v/baribal)](https://pypi.org/project/baribal/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/baribal)](https://pypi.org/project/baribal/)
-[![Coverage](https://img.shields.io/codecov/c/github/yourusername/baribal)](https://codecov.io/gh/gpenessot/baribal)
-[![License](https://img.shields.io/github/license/yourusername/baribal)](https://github.com/gpenessot/baribal/blob/main/LICENSE)
+[![Coverage](https://img.shields.io/codecov/c/github/gpenessot/baribal)](https://codecov.io/gh/gpenessot/baribal)
+[![License](https://img.shields.io/github/license/gpenessot/baribal)](https://github.com/gpenessot/baribal/blob/main/LICENSE)
 [![Python Versions](https://img.shields.io/pypi/pyversions/baribal)](https://pypi.org/project/baribal/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
