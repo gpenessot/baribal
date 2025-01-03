@@ -3,6 +3,7 @@ from datetime import date, datetime
 
 import pandas as pd
 import polars as pl
+
 from baribal.core import glimpse
 
 # Créons un DataFrame avec différents types de données
