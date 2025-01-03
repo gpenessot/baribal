@@ -8,6 +8,7 @@ import polars as pl
 
 from baribal import tabyl
 
+
 # Create sample dataset
 def create_sample_data():
     """Create a sample dataset for demonstration."""
