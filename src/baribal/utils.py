@@ -1,7 +1,7 @@
 """Utility functions for DataFrame column manipulation."""
 import re
 import unicodedata
-from typing import Callable, Optional, Union, dict
+from typing import Callable, Optional, Union
 
 import pandas as pd
 import polars as pl

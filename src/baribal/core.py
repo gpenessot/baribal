@@ -1,5 +1,5 @@
 """Core functionality for DataFrame inspection."""
-from typing import Any, Optional, Union, tuple
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
