@@ -18,6 +18,7 @@ While pandas and polars are incredibly powerful, some R functions like `glimpse(
 - Perform common data cleaning tasks with less code
 - Handle missing values more intuitively
 - Generate summary statistics with minimal effort
+- Optimize memory usage with smart type inference
 
 ## Features
 
