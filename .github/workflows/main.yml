@@ -80,6 +80,8 @@ jobs:
   publish:
     needs: [test-and-lint]
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write 
     if: github.event_name == 'release' && github.event.action == 'published'
     
     steps:
