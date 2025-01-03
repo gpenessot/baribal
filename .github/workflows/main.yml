@@ -1,5 +1,4 @@
 name: CI/CD Workflow
-
 on:
   push:
     branches: 
@@ -9,7 +8,9 @@ on:
     branches: 
       - main
       - dev
-  workflow_dispatch:  # Add manual trigger
+  release:
+    types: [published]  # Ajouté pour déclencher sur les releases
+  workflow_dispatch:  
     inputs:
       python-version:
         description: 'Python version to test'
@@ -27,9 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: 
-          - ${{ github.event.inputs.python-version || '3.11' }}
-
+        # Test sur toutes les versions Python
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    
     steps:
     - uses: actions/checkout@v3
     
@@ -46,14 +47,43 @@ jobs:
       run: |
         uv venv
         . .venv/bin/activate
-        uv pip install -e .[dev]
+        uv pip install -e .[dev,docs]  # Ajout de docs
     
     - name: Run linters
       run: |
         . .venv/bin/activate
         ruff check .
     
-    - name: Run tests
+    - name: Run tests with coverage  # Modifié pour inclure la couverture
       run: |
         . .venv/bin/activate
-        pytest
+        pytest --cov=baribal --cov-report=xml
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+    # Nouveau job pour la doc
+    - name: Build documentation
+      if: github.ref == 'refs/heads/main'  # Seulement sur main
+      run: |
+        . .venv/bin/activate
+        mkdocs build
+    
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main'  # Seulement sur main
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./site
+
+    # Nouveau job pour la publication PyPI
+    - name: Build and publish to PyPI
+      if: github.event_name == 'release' && github.event.action == 'published'
+      run: |
+        . .venv/bin/activate
+        python -m build
+        twine check dist/*
+        twine upload dist/* -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
