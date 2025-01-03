@@ -235,7 +235,7 @@ def memory_diet(
     aggressive: bool = False
 ) -> pd.DataFrame:
     """Optimise l'utilisation mémoire du DataFrame.
-    
+
     Techniques :
     - Downcasting des types numériques
     - Compression des catégorielles
@@ -244,18 +244,21 @@ def memory_diet(
 
     Args:
         df: DataFrame à optimiser
-        aggressive: Appliquer des optimisations plus agressives (conversion en catégories)
+        aggressive: Appliquer des optimisations plus agressives (conversion en cat.)
 
-    Returns:
-        DataFrame optimisé en mémoire
+    Returns: DataFrame optimisé en mémoire
+
     """
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("Input must be a pandas DataFrame")
+
     result = df.copy()
-    
+
     # Optimisation des types numériques
     for col in result.select_dtypes(include=['int']).columns:
         col_min = result[col].min()
         col_max = result[col].max()
-        
+
         # Unsigned int si possible
         if col_min >= 0:
             if col_max <= np.iinfo(np.uint8).max:
@@ -268,15 +271,17 @@ def memory_diet(
             # Signed int
             if col_min >= np.iinfo(np.int8).min and col_max <= np.iinfo(np.int8).max:
                 result[col] = result[col].astype(np.int8)
-            elif col_min >= np.iinfo(np.int16).min and col_max <= np.iinfo(np.int16).max:
+            elif col_min >= np.iinfo(np.int16).min and col_max <= \
+                np.iinfo(np.int16).max:
                 result[col] = result[col].astype(np.int16)
-            elif col_min >= np.iinfo(np.int32).min and col_max <= np.iinfo(np.int32).max:
+            elif col_min >= np.iinfo(np.int32).min and col_max <= \
+                np.iinfo(np.int32).max:
                 result[col] = result[col].astype(np.int32)
-    
+
     # Optimisation des float
     for col in result.select_dtypes(include=['float']).columns:
         result[col] = pd.to_numeric(result[col], downcast='float')
-    
+
     # Optimisation des catégorielles
     if aggressive:
         # Conversion en catégories si cardinality faible
@@ -284,9 +289,10 @@ def memory_diet(
             nunique = result[col].nunique()
             if nunique / len(result) < 0.5:  # Si moins de 50% de valeurs uniques
                 result[col] = result[col].astype('category')
-    
-    # Optimisation de l'index si possible
-    if not result.index.equals(pd.RangeIndex(len(result))):
-        result.index = pd.RangeIndex(len(result))
-    
+
+    # Optimisation de l'index
+    if not isinstance(result.index, pd.RangeIndex):
+        result = result.reset_index(drop=True)
+        result.index.name = None
+
     return result
