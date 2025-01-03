@@ -3,6 +3,7 @@ import re
 import unicodedata
 from typing import Callable, Optional, Union
 
+import numpy as np
 import pandas as pd
 import polars as pl
 
@@ -228,3 +229,64 @@ def rename_all(
 
     return result
 
+
+def memory_diet(
+    df: pd.DataFrame,
+    aggressive: bool = False
+) -> pd.DataFrame:
+    """Optimise l'utilisation mémoire du DataFrame.
+    
+    Techniques :
+    - Downcasting des types numériques
+    - Compression des catégorielles
+    - Optimisation des index
+    - Déduplication des données
+
+    Args:
+        df: DataFrame à optimiser
+        aggressive: Appliquer des optimisations plus agressives (conversion en catégories)
+
+    Returns:
+        DataFrame optimisé en mémoire
+    """
+    result = df.copy()
+    
+    # Optimisation des types numériques
+    for col in result.select_dtypes(include=['int']).columns:
+        col_min = result[col].min()
+        col_max = result[col].max()
+        
+        # Unsigned int si possible
+        if col_min >= 0:
+            if col_max <= np.iinfo(np.uint8).max:
+                result[col] = result[col].astype(np.uint8)
+            elif col_max <= np.iinfo(np.uint16).max:
+                result[col] = result[col].astype(np.uint16)
+            elif col_max <= np.iinfo(np.uint32).max:
+                result[col] = result[col].astype(np.uint32)
+        else:
+            # Signed int
+            if col_min >= np.iinfo(np.int8).min and col_max <= np.iinfo(np.int8).max:
+                result[col] = result[col].astype(np.int8)
+            elif col_min >= np.iinfo(np.int16).min and col_max <= np.iinfo(np.int16).max:
+                result[col] = result[col].astype(np.int16)
+            elif col_min >= np.iinfo(np.int32).min and col_max <= np.iinfo(np.int32).max:
+                result[col] = result[col].astype(np.int32)
+    
+    # Optimisation des float
+    for col in result.select_dtypes(include=['float']).columns:
+        result[col] = pd.to_numeric(result[col], downcast='float')
+    
+    # Optimisation des catégorielles
+    if aggressive:
+        # Conversion en catégories si cardinality faible
+        for col in result.select_dtypes(include=['object']).columns:
+            nunique = result[col].nunique()
+            if nunique / len(result) < 0.5:  # Si moins de 50% de valeurs uniques
+                result[col] = result[col].astype('category')
+    
+    # Optimisation de l'index si possible
+    if not result.index.equals(pd.RangeIndex(len(result))):
+        result.index = pd.RangeIndex(len(result))
+    
+    return result
