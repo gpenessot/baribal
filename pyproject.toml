@@ -45,6 +45,7 @@ packages = ["src"]
 [tool.ruff]
 line-length = 88
 target-version = "py39"
+exclude = ["tests/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I", "UP", "N", "W", "D"]
