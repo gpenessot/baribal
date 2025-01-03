@@ -144,3 +144,77 @@ result = bb.rename_all(df, lambda x: f'col_{x.upper()}')
 print(result.columns)
 # Output: ['col_A', 'col_B']
 ```
+
+### `memory_diet`
+
+```python
+def memory_diet(
+    df: pd.DataFrame,
+    aggressive: bool = False
+) -> pd.DataFrame:
+```
+
+Optimize DataFrame memory usage through various techniques including numeric downcasting, categorical compression, and index optimization.
+
+#### Parameters
+
+- `df`: Input pandas DataFrame to optimize
+- `aggressive`: Whether to apply more aggressive optimizations (default: False)
+  - When True, converts string columns to categorical if they have low cardinality (<50% unique values)
+  - When False, only performs safe optimizations like numeric downcasting
+
+#### Returns
+
+DataFrame with optimized memory usage through:
+- Integer downcasting to smallest possible type (signed/unsigned)
+- Float downcasting when possible
+- Categorical conversion for low-cardinality string columns (in aggressive mode)
+- Index optimization to RangeIndex when possible
+
+#### Examples
+
+Basic usage:
+```python
+import pandas as pd
+import baribal as bb
+
+# Create a sample DataFrame with various types
+df = pd.DataFrame({
+    'id': range(1000000),  # int64 by default
+    'small_int': range(100),  # Can be uint8
+    'category': ['A', 'B', 'C'] * 333334  # String with low cardinality
+})
+
+# Basic optimization (numeric downcasting only)
+optimized_df = bb.memory_diet(df)
+print(f"Memory usage: {optimized_df.memory_usage(deep=True).sum() / 1024**2:.2f}MB")
+
+# Aggressive optimization (including categorical conversion)
+optimized_df = bb.memory_diet(df, aggressive=True)
+print(f"Memory usage with aggressive mode: {optimized_df.memory_usage(deep=True).sum() / 1024**2:.2f}MB")
+```
+
+Advanced usage with memory monitoring:
+```python
+import pandas as pd
+import baribal as bb
+
+# Load and optimize a large DataFrame
+df = pd.read_csv('large_file.csv')
+
+# Check initial memory usage
+initial_memory = df.memory_usage(deep=True).sum() / 1024**2
+
+# Optimize with memory_diet
+df_optimized = bb.memory_diet(df, aggressive=True)
+
+# Check final memory usage
+final_memory = df_optimized.memory_usage(deep=True).sum() / 1024**2
+
+print(f"Memory reduced from {initial_memory:.2f}MB to {final_memory:.2f}MB")
+print(f"Reduction: {100 * (1 - final_memory/initial_memory):.1f}%")
+
+# Check the new dtypes
+print("\nOptimized data types:")
+print(df_optimized.dtypes)
+```
