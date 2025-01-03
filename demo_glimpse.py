@@ -1,9 +1,8 @@
 """Demo script for testing glimpse function."""
+from datetime import date, datetime
+
 import pandas as pd
 import polars as pl
-from datetime import datetime, date
-import numpy as np
-
 from baribal.core import glimpse
 
 # Créons un DataFrame avec différents types de données
@@ -11,12 +10,12 @@ data = {
     'id': range(1, 6),
     'name': ['John Doe', 'Jane Smith', 'Bob Wilson', 'Alice Brown', 'Charlie Davis'],
     'age': [25, 30, 35, 28, 42],
-    'date_joined': [date(2023, 1, 1), date(2023, 2, 15), date(2023, 3, 30), 
+    'date_joined': [date(2023, 1, 1), date(2023, 2, 15), date(2023, 3, 30),
                    date(2023, 4, 10), date(2023, 5, 20)],
     'last_login': [datetime.now() for _ in range(5)],
     'is_active': [True, True, False, True, True],
     'score': [92.5, 88.0, None, 95.5, 90.0],
-    'tags': [['dev', 'python'], ['dev', 'java'], ['design'], 
+    'tags': [['dev', 'python'], ['dev', 'java'], ['design'],
             ['dev', 'python', 'data'], ['admin']],
 }
 
