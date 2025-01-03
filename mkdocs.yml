@@ -1,0 +1,22 @@
+site_name: Baribal Documentation
+site_description: R-inspired & other data analysis utilities for Python
+repo_url: https://github.com/gpenessot/baribal
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: brown
+      accent: amber
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
