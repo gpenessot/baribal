@@ -52,10 +52,10 @@ select = ["E", "F", "B", "I", "UP", "N", "W", "D"]
 ignore = ["D100", "D104", "D203", "D213"]
 per-file-ignores = { "tests/*"= ["D", "B", "S"] }
 
-
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=baribal"
+pythonpath = ["src"]
 testpaths = [
     "tests",
 ]
