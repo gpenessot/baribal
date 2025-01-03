@@ -1,10 +1,18 @@
 # baribal 🐻
 
-A Python package extending pandas with helper functions for simpler exploratory data analysis and data wrangling.
+[![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/baribal/ci.yml?branch=main)](https://github.com/yourusername/baribal/actions)
+[![PyPI version](https://img.shields.io/pypi/v/baribal)](https://pypi.org/project/baribal/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/baribal)](https://pypi.org/project/baribal/)
+[![Coverage](https://img.shields.io/codecov/c/github/yourusername/baribal)](https://codecov.io/gh/yourusername/baribal)
+[![License](https://img.shields.io/github/license/yourusername/baribal)](https://github.com/yourusername/baribal/blob/main/LICENSE)
+[![Python Versions](https://img.shields.io/pypi/pyversions/baribal)](https://pypi.org/project/baribal/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
+A Python package extending pandas and polars with helper functions for simpler exploratory data analysis and data wrangling, inspired by R's tidyverse packages.
 
 ## Why Baribal?
 
-While pandas is incredibly powerful, some R functions like `glimpse()`, `tabyl()`, or `clean_names()` make data exploration and manipulation particularly smooth. Baribal brings these functionalities to Python, helping you to:
+While pandas and polars are incredibly powerful, some R functions like `glimpse()`, `tabyl()`, or `clean_names()` make data exploration and manipulation particularly smooth. Baribal brings these functionalities to Python, helping you to:
 
 - Get quick, insightful overviews of your DataFrames
 - Perform common data cleaning tasks with less code
@@ -13,11 +21,101 @@ While pandas is incredibly powerful, some R functions like `glimpse()`, `tabyl()
 
 ## Features
 
-- 🔍 `glimpse()`: R-style enhanced DataFrame preview
-- 🧹 Smart column naming and cleaning utilities
-- 📊 Enhanced statistical summaries
-- 🔮 Better missing values handling
-- More coming soon...
+### Core Functions
+
+#### 🔍 `glimpse()`
+R-style enhanced DataFrame preview that works with both pandas and polars:
+
+```python
+import pandas as pd
+import baribal as bb
+
+df = pd.DataFrame({
+    'id': range(1, 6),
+    'name': ['John Doe', 'Jane Smith', 'Bob Wilson', 'Alice Brown', 'Charlie Davis'],
+    'age': [25, 30, 35, 28, 42],
+    'score': [92.5, 88.0, None, 95.5, 90.0]
+})
+
+bb.glimpse(df)
+```
+
+Output:
+```
+Observations: 5
+Variables: 4
+DataFrame type: pandas
+$ id    <int> 1, 2, 3, 4, 5
+$ name  <chr> "John Doe", "Jane Smith", "Bob Wilson", "Alice Brown", "Charlie Davis"
+$ age   <int> 25, 30, 35, 28, 42
+$ score <num> 92.5, 88.0, NA, 95.5, 90.0
+```
+
+#### 📊 `tabyl()`
+Enhanced cross-tabulations with integrated statistics:
+
+```python
+import baribal as bb
+
+# Single variable frequency table
+result, _ = bb.tabyl(df, 'category')
+
+# Two-way cross-tabulation with chi-square statistics
+result, stats = bb.tabyl(df, 'category', 'status')
+```
+
+### Data Cleaning
+
+#### 🧹 `clean_names()`
+Smart column name cleaning with multiple case styles:
+
+```python
+import baribal as bb
+
+df = pd.DataFrame({
+    "First Name": [],
+    "Last.Name": [],
+    "Email@Address": [],
+    "Phone #": []
+})
+
+# Snake case (default)
+bb.clean_names(df)
+# → columns become: ['first_name', 'last_name', 'email_address', 'phone']
+
+# Camel case
+bb.clean_names(df, case='camel')
+# → columns become: ['firstName', 'lastName', 'emailAddress', 'phone']
+
+# Pascal case
+bb.clean_names(df, case='pascal')
+# → columns become: ['FirstName', 'LastName', 'EmailAddress', 'Phone']
+```
+
+#### 🔄 `rename_all()`
+Batch rename columns using patterns:
+
+```python
+import baribal as bb
+
+# Using regex pattern
+bb.rename_all(df, r'Col_(\d+)')  # Extracts numbers from column names
+
+# Using case transformation
+bb.rename_all(df, lambda x: x.lower())  # Convert all to lowercase
+```
+
+### Analysis Tools
+
+#### 🔍 `missing_summary()`
+Comprehensive missing values analysis:
+
+```python
+import baribal as bb
+
+summary = bb.missing_summary(df)
+# Returns DataFrame with missing value statistics for each column
+```
 
 ## Installation
 
@@ -25,31 +123,13 @@ While pandas is incredibly powerful, some R functions like `glimpse()`, `tabyl()
 pip install baribal
 ```
 
-## Quick Start
+## Dependencies
 
-```python
-import pandas as pd
-import baribal as bb
-
-# Get an intuitive overview of your DataFrame
-bb.glimpse(df)
-
-# More examples coming soon...
-```
-
-```
-Observations: 5
-Variables: 8
-DataFrame type: polars
-$ id          <int> 1, 2, 3, 4, 5
-$ name        <chr> "John Doe", "Jane Smith", "Bob Wilson", "Alice Brown", "Charlie Davis"
-$ age         <int> 25, 30, 35, 28, 42
-$ date_joined <dte> 2023-01-01, 2023-02-15, 2023-03-30, 2023-04-10, 2023-05-20
-$ last_login  <dtm> 2025-01-03 01:06:..., 2025-01-03 01:06:..., 2025-01-03 01:06:..., 2025-01-03 01:06:..., 2025-01-03 01:06:...
-$ is_active   <log> True, True, False, True, True
-$ score       <num> 92.5, 88.0, NA, 95.5, 90.0
-$ tags        <chr> "dev, python", "dev, java", "design", "dev, python, data", "admin"
-```
+- Python >= 3.8
+- pandas >= 1.0.0
+- polars >= 0.20.0 (optional)
+- numpy
+- scipy
 
 ## Development
 
@@ -64,12 +144,30 @@ To set up the development environment:
 make install
 ```
 
+To run tests:
+
+```bash
+make test
+```
+
 ## Contributing
 
-Contributions are welcome! Whether it's suggesting new features, improving documentation, or reporting bugs.
+Contributions are welcome! Whether it's:
+- Suggesting new R-inspired features
+- Improving documentation
+- Adding test cases
+- Reporting bugs
 
-Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our git commit conventions and development process.
+Please check out our [Contributing Guidelines](CONTRIBUTING.md) for details on our git commit conventions and development process.
 
 ## License
 
 MIT License
+
+## Acknowledgments
+
+Inspired by various R packages including:
+- `dplyr`
+- `janitor`
+- `tibble`
+- `naniar`
