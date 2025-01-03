@@ -9,7 +9,7 @@ on:
       - main
       - dev
   release:
-    types: [published]  # Ajouté pour déclencher sur les releases
+    types: [published]
   workflow_dispatch:  
     inputs:
       python-version:
@@ -28,7 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Test sur toutes les versions Python
         python-version: ['3.8', '3.9', '3.10', '3.11']
     
     steps:
@@ -47,14 +46,14 @@ jobs:
       run: |
         uv venv
         . .venv/bin/activate
-        uv pip install -e .[dev,docs]  # Ajout de docs
+        uv pip install -e .[dev,docs]
     
     - name: Run linters
       run: |
         . .venv/bin/activate
         ruff check .
     
-    - name: Run tests with coverage  # Modifié pour inclure la couverture
+    - name: Run tests with coverage
       run: |
         . .venv/bin/activate
         pytest --cov=baribal --cov-report=xml
@@ -65,25 +64,43 @@ jobs:
         file: ./coverage.xml
         fail_ci_if_error: false
 
-    # Nouveau job pour la doc
     - name: Build documentation
-      if: github.ref == 'refs/heads/main'  # Seulement sur main
+      if: github.ref == 'refs/heads/main'
       run: |
         . .venv/bin/activate
         mkdocs build
     
     - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'  # Seulement sur main
+      if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        personal_token: ${{ secrets.GH_PAGES_TOKEN }}
         publish_dir: ./site
 
-    # Nouveau job pour la publication PyPI
-    - name: Build and publish to PyPI
-      if: github.event_name == 'release' && github.event.action == 'published'
+  publish:
+    needs: [test-and-lint]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.11'
+    
+    - name: Install build dependencies
       run: |
-        . .venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build distribution
+      run: |
         python -m build
         twine check dist/*
-        twine upload dist/* -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+    
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@v1.8.10
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
