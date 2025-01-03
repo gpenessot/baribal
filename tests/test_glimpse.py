@@ -24,11 +24,11 @@ def test_glimpse_pandas(sample_data, capsys):
     captured = capsys.readouterr()
     output = captured.out.strip().split("\n")
     
-    assert "Rows: 3" in output[0]
-    assert "Columns: 2" in output[1]
+    assert "Observations: 3" in output[0]
+    assert "Variables: 2" in output[1]
     assert "DataFrame type: pandas" in output[2]
-    assert "$ a (int64) 1, 2, 3" in output[3]
-    assert '$ b (object) "x", "y", "z"' in output[4]
+    assert "$ a <int>" in output[3]
+    assert "$ b <chr>" in output[4]
 
 
 def test_glimpse_polars(sample_data, capsys):
@@ -39,11 +39,11 @@ def test_glimpse_polars(sample_data, capsys):
     captured = capsys.readouterr()
     output = captured.out.strip().split("\n")
     
-    assert "Rows: 3" in output[0]
-    assert "Columns: 2" in output[1]
+    assert "Observations: 3" in output[0]
+    assert "Variables: 2" in output[1]
     assert "DataFrame type: polars" in output[2]
-    assert "$ a (Int64) 1, 2, 3" in output[3]
-    assert '$ b (String) "x", "y", "z"' in output[4]
+    assert "$ a <int>" in output[3]
+    assert "$ b <chr>" in output[4]
 
 
 def test_glimpse_long_values_pandas(capsys):
@@ -54,7 +54,8 @@ def test_glimpse_long_values_pandas(capsys):
     
     glimpse(df, width=50)
     captured = capsys.readouterr()
-    assert len(captured.out.strip().split("\n")[3]) <= 50
+    output = captured.out.strip().split("\n")
+    assert len(output[3]) <= 50
 
 
 def test_glimpse_long_values_polars(capsys):
@@ -65,7 +66,8 @@ def test_glimpse_long_values_polars(capsys):
     
     glimpse(df, width=50)
     captured = capsys.readouterr()
-    assert len(captured.out.strip().split("\n")[3]) <= 50
+    output = captured.out.strip().split("\n")
+    assert len(output[3]) <= 50
 
 
 def test_glimpse_missing_values_pandas(capsys):
@@ -93,7 +95,7 @@ def test_glimpse_missing_values_polars(capsys):
 def test_glimpse_invalid_input():
     """Test glimpse with invalid input."""
     with pytest.raises(TypeError, match="Input must be either a pandas DataFrame or a polars DataFrame"):
-        glimpse([1, 2, 3])  # List instead of DataFrame
+        glimpse([1, 2, 3])
 
 
 def test_glimpse_empty_pandas(capsys):
@@ -104,8 +106,8 @@ def test_glimpse_empty_pandas(capsys):
     captured = capsys.readouterr()
     output = captured.out.strip().split("\n")
     
-    assert "Rows: 0" in output[0]
-    assert "Columns: 0" in output[1]
+    assert "Observations: 0" in output[0]
+    assert "Variables: 0" in output[1]
 
 
 def test_glimpse_empty_polars(capsys):
@@ -116,5 +118,5 @@ def test_glimpse_empty_polars(capsys):
     captured = capsys.readouterr()
     output = captured.out.strip().split("\n")
     
-    assert "Rows: 0" in output[0]
-    assert "Columns: 0" in output[1]
+    assert "Observations: 0" in output[0]
+    assert "Variables: 0" in output[1]
