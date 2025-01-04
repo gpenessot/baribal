@@ -1,3 +1,5 @@
+![](images/logo%20baribal.png)
+
 # baribal 🐻
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/gpenessot/baribal/main.yml?branch=main)](https://github.com/gpenessot/baribal/actions)
