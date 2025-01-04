@@ -75,6 +75,7 @@ jobs:
       with:
         personal_token: ${{ secrets.GH_PAGES_TOKEN }}
         publish_dir: ./site
+        force_orphan: true
 
   publish:
       needs: [test-and-lint]
