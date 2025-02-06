@@ -10,7 +10,7 @@ version = "0.2.0"
 description = "Helper functions for pandas data analysis, inspired by R"
 readme = "README.md"
 requires-python = ">=3.9"
-license = "MIT"
+license = { file = "LICENSE" }
 keywords = ["pandas", "data-analysis", "r", "glimpse"]
 authors = [
     { name = "Gaël Penessot", email = "gael.penessot@data-decision.io" }
@@ -56,15 +56,14 @@ docs = [
 # Configuration de setuptools pour la structure src/
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["baribal"]
 
 # Inclure les fichiers de typage et autres ressources
 [tool.setuptools.package-data]
 baribal = ["py.typed"]
 
-# Configuration pour la recherche des packages
-[options.packages.find]
-where = "src"
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["baribal*"]
 exclude = ["tests*"]
 
 # Configuration de l'outil de linting Ruff
