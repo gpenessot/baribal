@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 # Métadonnées principales du projet
 [project]
 name = "baribal"
-version = "0.2.0"
+version = "0.2.1"
 description = "Helper functions for pandas data analysis, inspired by R"
 readme = "README.md"
 requires-python = ">=3.9"
