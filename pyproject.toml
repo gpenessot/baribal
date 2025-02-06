@@ -1,7 +1,9 @@
+# Configuration du système de build
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
+# Métadonnées principales du projet
 [project]
 name = "baribal"
 version = "0.2.0"
@@ -25,6 +27,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
+# Dépendances principales requises pour le fonctionnement du package
 dependencies = [
     "pandas>=2.0.0",
     "polars>=0.20.0",
@@ -33,6 +36,7 @@ dependencies = [
     "pyarrow>=12.0.0",
 ]
 
+# Dépendances optionnelles groupées par cas d'usage
 [project.optional-dependencies]
 dev = [
     "build>=1.0.3",
@@ -49,9 +53,21 @@ docs = [
     "mkdocstrings-python>=1.7.0"
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/baribal"]
+# Configuration de setuptools pour la structure src/
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["baribal"]
 
+# Inclure les fichiers de typage et autres ressources
+[tool.setuptools.package-data]
+baribal = ["py.typed"]
+
+# Configuration pour la recherche des packages
+[options.packages.find]
+where = "src"
+exclude = ["tests*"]
+
+# Configuration de l'outil de linting Ruff
 [tool.ruff]
 line-length = 88
 target-version = "py39"
@@ -62,6 +78,7 @@ select = ["E", "F", "B", "I", "UP", "N", "W", "D"]
 ignore = ["D100", "D104", "D203", "D213"]
 per-file-ignores = { "tests/*"= ["D", "B", "S"] }
 
+# Configuration de pytest pour les tests
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=baribal"
